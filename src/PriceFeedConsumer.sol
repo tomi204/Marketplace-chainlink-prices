@@ -9,21 +9,22 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
  */
 contract PriceFeedConsumer {
     AggregatorV3Interface internal priceFeedBTC;
-    AggregatorV3Interface internal priceFeedUSD;
+    AggregatorV3Interface internal priceFeedMatic;
     AggregatorV3Interface internal priceFeedETH;
     AggregatorV3Interface internal priceFeedUSDTUsd;
 
+    //// all tokens are on matic mainnet and the price feed is on USD
     constructor() {
         priceFeedBTC = AggregatorV3Interface(
             0xc907E116054Ad103354f2D350FD2514433D57F6f
         );
 
-        priceFeedUSD = AggregatorV3Interface(
+        priceFeedMatic = AggregatorV3Interface(
             0xAB594600376Ec9fD91F8e885dADF0CE036862dE0
         );
 
         priceFeedETH = AggregatorV3Interface(
-            0x327e23A4855b6F663a28c5161541d69Af8973302
+            0xf9d5AAC6E5572AEFa6bd64108ff86a222F69B64d
         );
 
         priceFeedUSDTUsd = AggregatorV3Interface(
@@ -37,8 +38,8 @@ contract PriceFeedConsumer {
      * @return latest price
      */
 
-    function getLatestPriceUSD() external view returns (int256) {
-        (, int256 price, , , ) = priceFeedUSD.latestRoundData();
+    function getLatestPriceMATIC() external view returns (int256) {
+        (, int256 price, , , ) = priceFeedMatic.latestRoundData();
         return price;
     }
 
@@ -55,9 +56,5 @@ contract PriceFeedConsumer {
     function getLastestPriceUSDTUsd() external view returns (int256) {
         (, int256 price, , , ) = priceFeedUSDTUsd.latestRoundData();
         return price;
-    }
-
-    function getPriceFeedBTC() external view returns (AggregatorV3Interface) {
-        return priceFeedBTC;
     }
 }

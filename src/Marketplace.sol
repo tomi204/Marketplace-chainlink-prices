@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -124,8 +125,7 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     ////@dev mint functions
 
     function mintUSDT(int _quantity, address _to) external {
-        int256 usdPrice = PricesContract.getLatestPriceUSD();
-        int256 amountInMatic = (_quantity * usdPrice) / price;
+        int256 amountInMatic = priceInUSDT(_quantity);
 
         require(
             ERC20Usdt.allowance(msg.sender, address(this)) >=
@@ -153,9 +153,7 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     }
 
     function mintWBTC(int _quantity, address _to) external {
-        int256 btcPrice = PricesContract.getLatestPriceBTC();
-        int256 amountInMatic = (_quantity * btcPrice) / price;
-
+        int256 amountInMatic = priceInBTC(_quantity);
         require(
             ERC20WBTC.allowance(msg.sender, address(this)) >=
                 uint(amountInMatic),
@@ -181,9 +179,7 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     }
 
     function mintWETH(int256 _quantity, address _to) external {
-        int256 ethPrice = PricesContract.getLatestPriceETH();
-
-        int256 amountInETH = (_quantity * ethPrice) / price;
+        int256 amountInETH = priceInETH(_quantity);
 
         require(
             ERC20WETH.allowance(msg.sender, address(this)) >= uint(amountInETH),
@@ -269,16 +265,30 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         payable(entrepreneur).transfer(entrepreneurAmount);
     }
 
-    function priceInBTC(uint256 _quantity) public view returns (uint256) {
-        uint256 bitcoinUsdPrice = PricesContract.getLatestPriceBTC(); /// bitcoin price in usd
-        int256 maticUsdPrice = PricesContract.getLastestPriceMaticUsd(); /// matic price in usd
-        ///// return price in bitcoin * quantity
-        return
-            (uint256(bitcoinUsdPrice) * uint256(maticUsdPrice) * _quantity) /
-            uint256(price);
+    function priceInBTC(int256 _quantity) public view returns (int256) {
+        int256 BTCPriceInUSD = PricesContract.getLatestPriceBTC(); /// bitcoin price in usd
+        int256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
+        int256 maticToBitcoinExchangeRate = (maticPriceInUSD * 1e8) /
+            BTCPriceInUSD;
+        int256 nftCostInBitcoin = (price * 1e8) / maticToBitcoinExchangeRate;
+        return nftCostInBitcoin * _quantity;
     }
 
-    function priceInETH(uint256 _quantity) public view returns (uint256) {
-        uint256 ethMaticPrice = PricesContract.getLatestPriceETH(); /// eth price in usd
+    function priceInETH(int256 _quantity) public view returns (int256) {
+        int256 ETHPriceInUSD = PricesContract.getLatestPriceETH(); /// bitcoin price in usd
+        int256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
+        int256 maticToETHExchangeRate = (maticPriceInUSD * 1e18) /
+            ETHPriceInUSD;
+        int256 nftCostInETH = (price * 1e8) / maticToETHExchangeRate;
+        return nftCostInETH * _quantity;
+    }
+
+    function priceInUSDT(int256 _quantity) public view returns (int256) {
+        int256 USDTPriceInUSD = PricesContract.getLastestPriceUSDTUsd(); /// bitcoin price in usd
+        int256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
+        int256 maticToUSDTExchangeRate = (maticPriceInUSD * 1e6) /
+            USDTPriceInUSD;
+        int256 nftCostInUSDT = (price * 1e6) / maticToUSDTExchangeRate;
+        return nftCostInUSDT * _quantity;
     }
 }
