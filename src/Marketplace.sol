@@ -96,7 +96,12 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     IERC20 private ERC20WETH;
 
     ////@dev events
-    event NftMinted(uint256 indexed requestId, address requester);
+    event NftMinted(
+        uint256 indexed requestId,
+        address requester,
+        int256 amount,
+        string token
+    );
 
     ////@dev constructor
     constructor(
@@ -148,7 +153,8 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         );
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-        _mint(_to, uint(sold), uint(_quantity), "");
+        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        emit NftMinted(timestamp, msg.sender, _quantity, "USDT");
         sold += _quantity;
     }
 
@@ -174,7 +180,9 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         );
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-        _mint(_to, uint(sold), uint(_quantity), "");
+        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+
+        emit NftMinted(timestamp, msg.sender, _quantity, "BTC");
         sold += _quantity;
     }
 
@@ -200,7 +208,8 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         );
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-        _mint(_to, uint(sold), uint(_quantity), "");
+        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        emit NftMinted(timestamp, msg.sender, _quantity, "WETH");
         sold += _quantity;
     }
 
@@ -209,7 +218,9 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
-        _mint(_to, uint(sold), uint(_quantity), "");
+        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        emit NftMinted(timestamp, msg.sender, _quantity, "USDT");
+
         sold += _quantity;
     }
 
