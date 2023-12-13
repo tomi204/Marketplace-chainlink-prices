@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {PriceFeedConsumer} from "./interface/PriceFeed.sol";
+import {PriceFeedConsumer} from "./PriceFeed.sol";
 
 ///
 
@@ -15,8 +15,8 @@ contract MarketiOlliN is Ownable {
 
     function createCrow(
         string memory _baseURI,
-        int256 _price,
-        int256 _totalSupply,
+        uint256 _price,
+        uint256 _totalSupply,
         address _entrepreneur,
         string memory _projectId
     ) public {
@@ -77,9 +77,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     ////@dev state variables
-    int256 price;
-    int256 totalSupply;
-    int256 sold;
+    uint256 price;
+    uint256 totalSupply;
+    uint256 sold;
     address entrepreneur;
     uint256 timestamp;
     string baseURI;
@@ -99,15 +99,15 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     event NftMinted(
         uint256 indexed requestId,
         address requester,
-        int256 amount,
+        uint256 amount,
         string token
     );
 
     ////@dev constructor
     constructor(
         address _entrepreneur,
-        int256 _price,
-        int256 _totalSupply,
+        uint256 _price,
+        uint256 _totalSupply,
         string memory _URI,
         address _ERC20Usdt,
         address _ERC20WBTC,
@@ -125,12 +125,15 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         ERC20WBTC = IERC20(_ERC20WBTC);
         ERC20ION = IERC20(_ERC20ION);
         ERC20WETH = IERC20(_ERC20WETH);
+        PricesContract = PriceFeedConsumer(
+            0x30F396A426036dA0b2346185d3c1a19D78f86F13
+        );
     }
 
     ////@dev mint functions
 
-    function mintUSDT(int _quantity, address _to) external {
-        int256 amountInMatic = priceInUSDT(_quantity);
+    function mintUSDT(uint _quantity, address _to) external {
+        uint256 amountInMatic = priceInUSDT(_quantity);
 
         require(
             ERC20Usdt.allowance(msg.sender, address(this)) >=
@@ -158,8 +161,8 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         sold += _quantity;
     }
 
-    function mintWBTC(int _quantity, address _to) external {
-        int256 amountInMatic = priceInBTC(_quantity);
+    function mintWBTC(uint _quantity, address _to) external {
+        uint256 amountInMatic = priceInBTC(_quantity);
         require(
             ERC20WBTC.allowance(msg.sender, address(this)) >=
                 uint(amountInMatic),
@@ -186,8 +189,8 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         sold += _quantity;
     }
 
-    function mintWETH(int256 _quantity, address _to) external {
-        int256 amountInETH = priceInETH(_quantity);
+    function mintWETH(uint256 _quantity, address _to) external {
+        uint256 amountInETH = priceInETH(_quantity);
 
         require(
             ERC20WETH.allowance(msg.sender, address(this)) >= uint(amountInETH),
@@ -213,8 +216,8 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         sold += _quantity;
     }
 
-    function mint(int _quantity, address _to) external payable {
-        require(int(msg.value) >= price * _quantity, "Not enough money");
+    function mint(uint _quantity, address _to) external payable {
+        require(msg.value >= price * _quantity, "Not enough money");
         require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
@@ -276,30 +279,24 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         payable(entrepreneur).transfer(entrepreneurAmount);
     }
 
-    function priceInBTC(int256 _quantity) public view returns (int256) {
-        int256 BTCPriceInUSD = PricesContract.getLatestPriceBTC(); /// bitcoin price in usd
-        int256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
-        int256 maticToBitcoinExchangeRate = (maticPriceInUSD * 1e8) /
-            BTCPriceInUSD;
-        int256 nftCostInBitcoin = (price * 1e8) / maticToBitcoinExchangeRate;
+    function priceInBTC(uint256 _quantity) public view returns (uint256) {
+        uint256 BTCPriceInUSD = PricesContract.getLatestPriceBTC(); /// bitcoin price in usd
+        uint256 nftCostInBitcoin = (price * 1e8) / BTCPriceInUSD;
         return nftCostInBitcoin * _quantity;
     }
 
-    function priceInETH(int256 _quantity) public view returns (int256) {
-        int256 ETHPriceInUSD = PricesContract.getLatestPriceETH(); /// bitcoin price in usd
-        int256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
-        int256 maticToETHExchangeRate = (maticPriceInUSD * 1e18) /
-            ETHPriceInUSD;
-        int256 nftCostInETH = (price * 1e8) / maticToETHExchangeRate;
+    function priceInETH(uint256 _quantity) public view returns (uint256) {
+        uint256 ETHPriceInUSD = PricesContract.getLatestPriceETH(); /// bitcoin price in usd
+        uint256 nftCostInETH = (price * 1e18) / ETHPriceInUSD;
         return nftCostInETH * _quantity;
     }
 
-    function priceInUSDT(int256 _quantity) public view returns (int256) {
-        int256 USDTPriceInUSD = PricesContract.getLastestPriceUSDTUsd(); /// bitcoin price in usd
-        int256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
-        int256 maticToUSDTExchangeRate = (maticPriceInUSD * 1e6) /
+    function priceInUSDT(uint256 _quantity) public view returns (uint256) {
+        uint256 USDTPriceInUSD = PricesContract.getLastestPriceUSDTUsd(); /// bitcoin price in usd
+        uint256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
+        uint256 maticToUSDTExchangeRate = (maticPriceInUSD * 1e6) /
             USDTPriceInUSD;
-        int256 nftCostInUSDT = (price * 1e6) / maticToUSDTExchangeRate;
+        uint256 nftCostInUSDT = (price * 1e6) / maticToUSDTExchangeRate;
         return nftCostInUSDT * _quantity;
     }
 }

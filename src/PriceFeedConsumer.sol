@@ -38,23 +38,27 @@ contract PriceFeedConsumer {
      * @return latest price
      */
 
-    function getLatestPriceMATIC() external view returns (int256) {
+    function getLatestPriceMATIC() external view returns (uint256) {
         (, int256 price, , , ) = priceFeedMatic.latestRoundData();
-        return price;
+        uint256 priceToUint = uint256(price);
+        return priceToUint;
     }
 
-    function getLatestPriceETH() external view returns (int256) {
+    function getLatestPriceETH() external view returns (uint256) {
         (, int256 price, , , ) = priceFeedETH.latestRoundData();
-        return price;
+        uint256 priceToUint = uint256(price);
+        return priceToUint;
     }
 
-    function getLatestPriceBTC() external view returns (int256) {
+    function getLatestPriceBTC() external view returns (uint256) {
         (, int256 price, , , ) = priceFeedBTC.latestRoundData();
-        return price;
+        uint256 priceToUint = uint256(price);
+        return priceToUint;
     }
 
-    function getLastestPriceUSDTUsd() external view returns (int256) {
+    function getLastestPriceUSDTUsd() external view returns (uint256) {
         (, int256 price, , , ) = priceFeedUSDTUsd.latestRoundData();
-        return price;
+        uint256 priceToUint = uint256(price);
+        return priceToUint;
     }
 }
