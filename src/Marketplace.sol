@@ -217,12 +217,13 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     }
 
     function mint(uint _quantity, address _to) external payable {
-        require(msg.value >= price * _quantity, "Not enough money");
+        uint256 amountInMatic = priceInMatic(_quantity);
+        require(msg.value >= amountInMatic, "Not enough money");
         require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
         _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
-        emit NftMinted(timestamp, msg.sender, _quantity, "USDT");
+        emit NftMinted(timestamp, msg.sender, _quantity, "MATIC");
 
         sold += _quantity;
     }
@@ -292,11 +293,12 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     }
 
     function priceInUSDT(uint256 _quantity) public view returns (uint256) {
-        uint256 USDTPriceInUSD = PricesContract.getLastestPriceUSDTUsd(); /// bitcoin price in usd
-        uint256 maticPriceInUSD = PricesContract.getLatestPriceMATIC(); /// matic price in usd
-        uint256 maticToUSDTExchangeRate = (maticPriceInUSD * 1e6) /
-            USDTPriceInUSD;
-        uint256 nftCostInUSDT = (price * 1e6) / maticToUSDTExchangeRate;
-        return nftCostInUSDT * _quantity;
+        return price * _quantity;
+    }
+
+    function priceInMatic(uint256 _quantity) public view returns (uint256) {
+        uint256 MATICPriceInUSD = PricesContract.getLatestPriceMATIC(); /// price in usd
+        uint256 nftCostInMATIC = (price * 1e18) / MATICPriceInUSD;
+        return nftCostInMATIC * _quantity;
     }
 }
