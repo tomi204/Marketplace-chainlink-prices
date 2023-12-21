@@ -136,12 +136,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         uint256 amountInMatic = priceInUSDT(_quantity);
 
         require(
-            ERC20Usdt.allowance(msg.sender, address(this)) >=
-                uint(amountInMatic),
+            ERC20Usdt.allowance(msg.sender, address(this)) >= amountInMatic,
             "You must approve ERC20 to the contract first"
         );
         require(
-            ERC20Usdt.balanceOf(msg.sender) >= uint(amountInMatic),
+            ERC20Usdt.balanceOf(msg.sender) >= amountInMatic,
             "Not enough money"
         );
 
@@ -152,11 +151,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         bool transferSuccessful = ERC20Usdt.transferFrom(
             msg.sender,
             address(this),
-            uint(amountInMatic)
+            amountInMatic
         );
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        _mint(_to, sold, _quantity, bytes(baseURI));
         emit NftMinted(timestamp, msg.sender, _quantity, "USDT");
         sold += _quantity;
     }
@@ -164,12 +163,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
     function mintWBTC(uint _quantity, address _to) external {
         uint256 amountInMatic = priceInBTC(_quantity);
         require(
-            ERC20WBTC.allowance(msg.sender, address(this)) >=
-                uint(amountInMatic),
+            ERC20WBTC.allowance(msg.sender, address(this)) >= amountInMatic,
             "You must approve ERC20 to the contract first"
         );
         require(
-            ERC20WBTC.balanceOf(msg.sender) >= uint(amountInMatic),
+            ERC20WBTC.balanceOf(msg.sender) >= amountInMatic,
             "Not enough money"
         );
         require(sold < totalSupply, "Crow is sold out");
@@ -179,11 +177,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         bool transferSuccessful = ERC20WBTC.transferFrom(
             msg.sender,
             address(this),
-            uint(amountInMatic)
+            amountInMatic
         );
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        _mint(_to, sold, _quantity, bytes(baseURI));
 
         emit NftMinted(timestamp, msg.sender, _quantity, "BTC");
         sold += _quantity;
@@ -193,11 +191,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         uint256 amountInETH = priceInETH(_quantity);
 
         require(
-            ERC20WETH.allowance(msg.sender, address(this)) >= uint(amountInETH),
+            ERC20WETH.allowance(msg.sender, address(this)) >= amountInETH,
             "You must approve ERC20 to the contract first"
         );
         require(
-            ERC20WETH.balanceOf(msg.sender) >= uint(amountInETH),
+            ERC20WETH.balanceOf(msg.sender) >= amountInETH,
             "Not enough money"
         );
         require(sold < totalSupply, "Crow is sold out");
@@ -207,11 +205,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         bool transferSuccessful = ERC20WETH.transferFrom(
             msg.sender,
             address(this),
-            uint(amountInETH)
+            amountInETH
         );
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        _mint(_to, sold, _quantity, bytes(baseURI));
         emit NftMinted(timestamp, msg.sender, _quantity, "WETH");
         sold += _quantity;
     }
@@ -222,7 +220,7 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
-        _mint(_to, uint(sold), uint(_quantity), bytes(baseURI));
+        _mint(_to, sold, _quantity, bytes(baseURI));
         emit NftMinted(timestamp, msg.sender, _quantity, "MATIC");
 
         sold += _quantity;
