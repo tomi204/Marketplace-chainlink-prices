@@ -41,7 +41,6 @@ contract MarketiOlliN is Ownable {
     function withdraw() public {
         require(msg.sender == owner(), "Only the entrepreneur can withdraw");
 
-        require(address(this).balance > 0, "No balance to withdraw");
         payable(owner()).transfer(address(this).balance);
         ///transfer erc20 tokens
         IERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F).transfer(
@@ -259,30 +258,45 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         return (amount * FEE_PERCENTAGE) / 100;
     }
 
-    function withdraw() public {
-        require(
-            msg.sender == entrepreneur,
-            "Only the entrepreneur can withdraw"
-        );
 
-        require(address(this).balance > 0, "No balance to withdraw");
+    function withdrawUSDT() public {
+        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
+        uint256 amount = ERC20Usdt.balanceOf(address(this));
+        uint256 fee = calculateFee(amount);
 
-        uint256 contractBalance = address(this).balance;
-        require(contractBalance > 0, "No balance to withdraw");
+        ERC20Usdt.transfer(feeAddress, fee);
 
-        uint256 feeAmount = calculateFee(contractBalance);
-        uint256 feeWETH = calculateFee(ERC20WETH.balanceOf(address(this)));
-        uint256 feeUSDT = calculateFee(ERC20Usdt.balanceOf(address(this)));
-        uint256 entrepreneurAmount = contractBalance - feeAmount;
-        uint256 entrepreneurWETH = ERC20WETH.balanceOf(address(this)) - feeWETH;
-        uint256 entrepreneurUSDT = ERC20Usdt.balanceOf(address(this)) - feeUSDT;
-        ///transfer erc20 tokens
-        ERC20WETH.transfer(feeAddress, feeWETH);
-        ERC20Usdt.transfer(feeAddress, feeUSDT);
-        ERC20WETH.transfer(entrepreneur, entrepreneurWETH);
-        ERC20Usdt.transfer(entrepreneur, entrepreneurUSDT);
-        payable(feeAddress).transfer(feeAmount);
-        payable(entrepreneur).transfer(entrepreneurAmount);
+        ERC20Usdt.transfer(entrepreneur, amount - fee);
+    }
+
+    function withdrawWBTC() public {
+        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
+        uint256 amount = ERC20WBTC.balanceOf(address(this));
+        uint256 fee = calculateFee(amount);
+
+        ERC20WBTC.transfer(feeAddress, fee);
+
+        ERC20WBTC.transfer(entrepreneur, amount - fee);
+    }
+
+    function withdrawION() public {
+        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
+        uint256 amount = ERC20ION.balanceOf(address(this));
+        uint256 fee = calculateFee(amount);
+
+        ERC20ION.transfer(feeAddress, fee);
+
+        ERC20ION.transfer(entrepreneur, amount - fee);
+    }
+
+    function withdrawWETH() public {
+        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
+        uint256 amount = ERC20WETH.balanceOf(address(this));
+        uint256 fee = calculateFee(amount);
+
+        ERC20WETH.transfer(feeAddress, fee);
+
+        ERC20WETH.transfer(entrepreneur, amount - fee);
     }
 
     // function priceInBTC(uint256 _quantity) public view returns (uint256) {
