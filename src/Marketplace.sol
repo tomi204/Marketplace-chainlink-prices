@@ -26,14 +26,9 @@ contract MarketiOlliN is Ownable {
                 _price,
                 _totalSupply,
                 _baseURI,
-                address(0xc2132D05D31c914a87C6611C10748AEb04B58e8F),
-                address(0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6),
-                address(0xb9Df42070b0D20074CC666c58005c1511903350B),
-                address(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619),
                 address(this)
             )
         );
-
         //emit event
         emit crowCreated(newCrow, _projectId);
     }
@@ -68,13 +63,12 @@ contract MarketiOlliN is Ownable {
             )
         );
     }
-}
+}           
 ////////////////////////////////////// ERC1155 //////////////////////////////////////
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
+contract IOlliN is ERC1155, Ownable {
     ////@dev state variables
     uint256 price;
     uint256 totalSupply;
@@ -96,9 +90,7 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
 
     ////@dev events
     event NftMinted(
-        uint256 indexed requestId,
         address requester,
-        uint256 amount,
         string token
     );
 
@@ -108,10 +100,6 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         uint256 _price,
         uint256 _totalSupply,
         string memory _URI,
-        address _ERC20Usdt,
-        address _ERC20WBTC,
-        address _ERC20ION,
-        address _ERC20WETH,
         address _feeAddress
     ) Ownable(_entrepreneur) ERC1155(_URI) {
         price = _price;
@@ -120,10 +108,10 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         feeAddress = _feeAddress;
         entrepreneur = _entrepreneur;
         baseURI = _URI;
-        ERC20Usdt = IERC20(_ERC20Usdt);
-        ERC20WBTC = IERC20(_ERC20WBTC);
-        ERC20ION = IERC20(_ERC20ION);
-        ERC20WETH = IERC20(_ERC20WETH);
+        ERC20Usdt = IERC20(0xc2132D05D31c914a87C6611C10748AEb04B58e8F);
+        ERC20WBTC = IERC20(0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6);
+        ERC20ION = IERC20(0xb9Df42070b0D20074CC666c58005c1511903350B);
+        ERC20WETH = IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
         PricesContract = PriceFeedConsumer(
             0x30F396A426036dA0b2346185d3c1a19D78f86F13
         );
@@ -131,7 +119,7 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
 
     ////@dev mint functions
 
-    function mintUSDT(uint _quantity, address _to) external {
+    function mintUSDT(uint256 _quantity, address _to) external {
         uint256 amountInMatic = priceInUSDT(_quantity);
 
         require(
@@ -142,8 +130,6 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
             ERC20Usdt.balanceOf(msg.sender) >= amountInMatic,
             "Not enough money"
         );
-
-        require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
         ///transfer ERC20
@@ -155,36 +141,35 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
         _mint(_to, sold, _quantity, "");
-        emit NftMinted(timestamp, msg.sender, _quantity, "USDT");
+        emit NftMinted( msg.sender, "USDT");
         sold += _quantity;
     }
 
-    // function mintWBTC(uint _quantity, address _to) external {
-    //     uint256 amountInMatic = priceInBTC(_quantity);
-    //     require(
-    //         ERC20WBTC.allowance(msg.sender, address(this)) >= amountInMatic,
-    //         "You must approve ERC20 to the contract first"
-    //     );
-    //     require(
-    //         ERC20WBTC.balanceOf(msg.sender) >= amountInMatic,
-    //         "Not enough money"
-    //     );
-    //     require(sold < totalSupply, "Crow is sold out");
-    //     require(sold + _quantity <= totalSupply, "There are not so many nfts");
+    function mintWBTC(uint256 _quantity, address _to) external {
+        uint256 amountInBTC = priceInBTC(_quantity);
 
-    //     ///transfer ERC20
-    //     bool transferSuccessful = ERC20WBTC.transferFrom(
-    //         msg.sender,
-    //         address(this),
-    //         amountInMatic
-    //     );
+        require(
+            ERC20WBTC.allowance(msg.sender, address(this)) >= amountInBTC,
+            "You must approve ERC20 to the contract first"
+        );
+        require(
+            ERC20WBTC.balanceOf(msg.sender) >= amountInBTC,
+            "Not enough money"
+        );
+        require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
-    //     require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-    //     _mint(_to, sold, _quantity, "");
+        ///transfer ERC20
+        bool transferSuccessful = ERC20WBTC.transferFrom(
+            msg.sender,
+            address(this),
+            amountInBTC
+        );
 
-    //     emit NftMinted(timestamp, msg.sender, _quantity, "BTC");
-    //     sold += _quantity;
-    // }
+        require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
+        _mint(_to, sold, _quantity, "");
+        emit NftMinted( msg.sender, "WBTC");
+        sold += _quantity;
+    }
 
     function mintWETH(uint256 _quantity, address _to) external {
         uint256 amountInETH = priceInETH(_quantity);
@@ -197,7 +182,6 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
             ERC20WETH.balanceOf(msg.sender) >= amountInETH,
             "Not enough money"
         );
-        require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
         ///transfer ERC20
@@ -209,48 +193,57 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
 
         require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
         _mint(_to, sold, _quantity, "");
-        emit NftMinted(timestamp, msg.sender, _quantity, "WETH");
+        emit NftMinted( msg.sender, "WETH");
         sold += _quantity;
     }
 
-    function mint(uint _quantity, address _to) external payable {
+    function mint(uint256 _quantity, address _to) external payable {
         uint256 amountInMatic = priceInMatic(_quantity);
         require(msg.value >= amountInMatic, "Not enough money");
-        require(sold < totalSupply, "Crow is sold out");
         require(sold + _quantity <= totalSupply, "There are not so many nfts");
 
         _mint(_to, sold, _quantity, "");
-        emit NftMinted(timestamp, msg.sender, _quantity, "MATIC");
+        emit NftMinted( msg.sender, "MATIC");
 
         sold += _quantity;
     }
 
-    // function mintIOLLIN(int _quantity, address _to) external {
-    //     require(
-    //         ERC20ION.allowance(msg.sender, address(this)) >=
-    //             usdPrice * _quantity,
-    //         "You must approve ERC20 to the contract first"
-    //     );
-    //     require(
-    //         ERC20ION.balanceOf(msg.sender) >= usdPrice * _quantity,
-    //         "Not enough money"
-    //     );
-    //     require(sold < totalSupply, "Crow is sold out");
-    //     require(sold + _quantity <= totalSupply, "There are not so many nfts");
+        function withdraw() public onlyOwner {
+        if (ERC20Usdt.balanceOf(address(this)) > 0) {
+            uint256 amount = ERC20Usdt.balanceOf(address(this));
+            uint256 fee = calculateFee(amount);
+            ERC20Usdt.transfer(feeAddress, fee);
+            ERC20Usdt.transfer(entrepreneur, amount - fee);
+        }
+        if (ERC20WBTC.balanceOf(address(this)) > 0) {
+            uint256 amount = ERC20WBTC.balanceOf(address(this));
+            uint256 fee = calculateFee(amount);
+            ERC20WBTC.transfer(feeAddress, fee);
+            ERC20WBTC.transfer(entrepreneur, amount - fee);
+        }
+        if (ERC20ION.balanceOf(address(this)) > 0) {
+            uint256 amount = ERC20ION.balanceOf(address(this));
+            uint256 fee = calculateFee(amount);
+            ERC20ION.transfer(feeAddress, fee);
+            ERC20ION.transfer(entrepreneur, amount - fee);
+        }
+        if (ERC20WETH.balanceOf(address(this)) > 0) {
+            uint256 amount = ERC20WETH.balanceOf(address(this));
+            uint256 fee = calculateFee(amount);
+            ERC20WETH.transfer(feeAddress, fee);
+            ERC20WETH.transfer(entrepreneur, amount - fee);
+        }
+        if (address(this).balance > 0) {
+            uint256 amount = address(this).balance;
+            uint256 fee = calculateFee(amount);
 
-    //     ///transfer ERC20
-    //     bool transferSuccessful = ERC20ION.transferFrom(
-    //         msg.sender,
-    //         address(this),
-    //         usdPrice * _quantity
-    //     );
+            payable(feeAddress).transfer(fee);
 
-    //     require(transferSuccessful, "ERC20 transfer failed"); // check if the transfer was successful or not and revert if it failed
-    //     _mint(_to, sold, _quantity, "");
-    //     sold += _quantity;
-    // }
+            payable(entrepreneur).transfer(amount - fee);
+        }
+    }
 
-    function _baseURI() internal view returns (string memory) {
+    function _baseURI() public view returns (string memory) {
         return baseURI;
     }
 
@@ -258,52 +251,11 @@ contract IOlliN is ERC1155, Ownable, ReentrancyGuard {
         return (amount * FEE_PERCENTAGE) / 100;
     }
 
-
-    function withdrawUSDT() public {
-        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
-        uint256 amount = ERC20Usdt.balanceOf(address(this));
-        uint256 fee = calculateFee(amount);
-
-        ERC20Usdt.transfer(feeAddress, fee);
-
-        ERC20Usdt.transfer(entrepreneur, amount - fee);
+    function priceInBTC(uint256 _quantity) public view returns (uint256) {
+        uint256 BTCPriceInUSD = PricesContract.getLatestPriceBTC(); /// bitcoin price in usd
+        uint256 nftCostInBitcoin = (price * 1e8) / BTCPriceInUSD;
+        return nftCostInBitcoin * _quantity;
     }
-
-    function withdrawWBTC() public {
-        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
-        uint256 amount = ERC20WBTC.balanceOf(address(this));
-        uint256 fee = calculateFee(amount);
-
-        ERC20WBTC.transfer(feeAddress, fee);
-
-        ERC20WBTC.transfer(entrepreneur, amount - fee);
-    }
-
-    function withdrawION() public {
-        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
-        uint256 amount = ERC20ION.balanceOf(address(this));
-        uint256 fee = calculateFee(amount);
-
-        ERC20ION.transfer(feeAddress, fee);
-
-        ERC20ION.transfer(entrepreneur, amount - fee);
-    }
-
-    function withdrawWETH() public {
-        require(msg.sender == entrepreneur, "Only the entrepreneur can withdraw");
-        uint256 amount = ERC20WETH.balanceOf(address(this));
-        uint256 fee = calculateFee(amount);
-
-        ERC20WETH.transfer(feeAddress, fee);
-
-        ERC20WETH.transfer(entrepreneur, amount - fee);
-    }
-
-    // function priceInBTC(uint256 _quantity) public view returns (uint256) {
-    //     uint256 BTCPriceInUSD = PricesContract.getLatestPriceBTC(); /// bitcoin price in usd
-    //     uint256 nftCostInBitcoin = (price * 1e8) / BTCPriceInUSD;
-    //     return nftCostInBitcoin * _quantity;
-    // }
 
     function priceInETH(uint256 _quantity) public view returns (uint256) {
         uint256 ETHPriceInUSD = PricesContract.getLatestPriceETH(); /// bitcoin price in usd
